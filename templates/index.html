@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+{% block body %}
+<form action="{{ url_for('search') }}" method="post" class="add-entry">
+	<table>	
+    <tr>
+      <td>Keywords:</td>
+      <td><input type="text" size="30" name="keywords"></td>
+    </tr>
+    <tr>
+      <td>City, State:</td>
+      <td><input type="text" size="30" name="location"></td>
+    </tr>
+		<tr>
+			<td width="500">Years of Experience:</td>
+			<td width="500">Minimum Degree:</td>
+		</tr>
+		<tr>
+			<td>
+				<select name="Experience"> 
+  				<option value="2">0 - 2 Years </option>
+  				<option value="5">3 - 5 Years</option>
+				  <option value="8">6 - 8 Years</option>
+				  <option value="11">9 - 11 Years</option>
+				  <option value="12">12+ Years</option>
+				</select>
+			</td>
+			<td>
+				<select name="Degree"> 
+			  	<option value="1">Bachelor's Degree </option>
+			  	<option value="2">Master's Degree</option>
+				  <option value="3">PhD</option>
+				</select>
+			</td>
+		</tr>
+	</table>	
+  <input type="submit" value="Get me my super suit!">
+</form>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block body %}
+<ul class="entries">
+  <p>You searched for {{ keyw }} in {{ loc }}</p>
+  <p><em>Search took {{ time_elapsed }} seconds</em></p>
+	{% for result in results %}
+  <li><a href="{{ result[2] }}">{{ result[0] }}</a></li>
+	{% else %}
+  <li><em>da fuc?</em></li>
+	{% endfor %}
+</ul>
+{% endblock %}
