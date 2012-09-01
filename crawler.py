@@ -7,6 +7,7 @@ import time
 import nltk
 import re
 import itertools
+from multiprocessing import Process,Queue
 
 # Browser
 def Browser_Setup():
@@ -110,6 +111,49 @@ def Open_All_Links(br,cj,page):
       page=result.get_data()
       links=get_all_urls(page)
   return br,cj,Jobs
+
+
+def get_25_jobs(br,cj,page):
+  Jobs=[]
+  links=get_all_urls(page)
+  for link in links[:-1]:
+    br,cj,Job_sections=Open_Link(br,cj,link)
+    Jobs.append(Job_sections)  
+  return br,cj,links,Jobs
+
+def move_to_next_jobs_page(br,cj,links):
+  time.sleep(30)
+  result=br.open(links[-1])
+  page=result.get_data()
+  return br,cj,page
+
+def moving_jobs_to_queue(Jobs):
+  for job in Jobs:
+    q.put(job)
+
+def test_jobs_in_sets_of_25(url,keywords,location):
+  start = time.clock()
+  br,cj=Browser_Setup()
+  br,cj,page=Job_Search(br,cj,url,keywords,location)
+  while True:
+    br,cj,links,Jobs=get_25_jobs(br,cj,page)
+    moving_jobs_to_queue(Jobs)
+    if links[-1]==None:
+	    break
+    br,cj,page=move_to_next_jobs_page(br,cj,links)
+  elapsed = (time.clock() - start)
+  return Jobs,elapsed
+
+def search_jobs_for_years_and_degrees(Jobs,SearchType):
+  Experience,Degree=DegreeAndExperienceLists(Jobs)
+  MinYears,MaxYears=SearchExp(Experience)
+  Required_Degree=SearchDeg(Degree)
+  if SearchType==1:
+    Result_urls=Search1(Jobs,MinYears,Required_Degree,YearsExp,DegreeNumber)
+  else:
+    Result_urls=Search2(Jobs,MinYears,Required_Degree,YearsExp,DegreeNumber)
+  return Result_urls
+
 
 """def DegreeAndExperience(Job_sections):
 	Experience_Location=[
@@ -274,7 +318,7 @@ def FullCombinedFunction(url,keywords,location,YearsExp,DegreeNumber,SearchType)
   else:
     Result_urls=Search2(Jobs,MinYears,Required_Degree,YearsExp,DegreeNumber)
   elapsed = (time.clock() - start)
-  return Result_urls,elapsed
+  return Result_urls,elapsed, len(Jobs)
 
 # Jobs,elapsed=TestCombinedFunction('http://www.careerbuilder.com','statistics data analyst','Chicago, Il')
 def TestCombinedFunction(url,keywords,location):
@@ -285,9 +329,21 @@ def TestCombinedFunction(url,keywords,location):
   elapsed = (time.clock() - start)
   return Jobs,elapsed
 
+'''if __name__=='__main__':
+  Jobs,elapsed = TestCombinedFunction('http://www.careerbuilder.com','statistics data analyst','Chicago, IL')
+  print "This search took:", elapsed, "hundred thousands of a second"
+  print "the set of jobs is:", len(Jobs), "jobs long"'''
+
+
+'''if __name__=='__main__':
+  Results_urls,elapsed, len(Jobs)=FullCombinedFunction('http://www.careerbuilder.com','statistics data analyst','Chicago, IL',2,1,2)
+  print 'These are the urls:', Result_urls 
+  print 'The search took:', elapsed, 'seconds'
+  print len(Jobs), 'jobs were searched' '''
+
 if __name__=='__main__':
-  Jobs,elapsed=TestCombinedFunction('http://www.careerbuilder.com','statistics data analyst','Chicago, Il')
-  print "This search took:", elapsed, "bajillion seconds"
-  print "Jobs found..."
-  for job in Jobs:
-    print job[0], job[2]
+  q=Queue()
+  Jobs,elapsed = test_jobs_in_sets_of_25('http://www.careerbuilder.com','statistics data analyst','Chicago, IL')
+  print "This search took:", elapsed, "hundred thousands of a second"
+  print "the last set of jobs was:", len(Jobs), "jobs long"
+  print "the queue is:", q.qsize(), "jobs long"
